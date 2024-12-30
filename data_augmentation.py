@@ -46,14 +46,14 @@ def augment_images(input_dir, output_dir):
     """
     # for each category
     for category in range(NUM_CATEGORIES):
-        category_dir = os.path.join(input_dir, str(category))
+        category_dir = os.path.join(input_dir, str(category).zfill(5))  # Corrected zfill usage
         output_category_dir = os.path.join(output_dir, str(category))
 
-        # if the folder doesn't exist create it
+        # if the folder doesn't exist, create it
         if not os.path.exists(output_category_dir):
             os.makedirs(output_category_dir)
 
-        # calculate the number of augmentations_per_image
+        # calculate the number of augmentations per image
         category_size = len(os.listdir(category_dir))
         if category_size == 0:
             print(f"No images found in category {category}")
@@ -63,14 +63,12 @@ def augment_images(input_dir, output_dir):
 
         # for each image
         for img_file in os.listdir(category_dir):
-
-            # load image
             img_path = os.path.join(category_dir, img_file)
-            img = load_img(img_path)
-            
+            img = load_img(img_path, target_size=(IMG_WIDTH, IMG_HEIGHT))  # Added target_size
+
             # reshape image
             x = img_to_array(img)
-            x = x.reshape((1,) + x.shape)  # Reshape to (1, IMG_WIDTH, IMG_HEIGHT, 3)
+            x = x.reshape((1,) + x.shape)  # Corrected the shape to (1, IMG_WIDTH, IMG_HEIGHT, 3)
 
             # Generate augmented images
             i = 0

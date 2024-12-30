@@ -10,7 +10,7 @@ def main():
     """
     # check usage
     if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: python script_name.py dir1 [dir2]")
+        print("Usage: python database_stats.py dir1 [dir2]")
         sys.exit(1)
     
     # assign variables
@@ -23,20 +23,20 @@ def main():
 def count_categories(directory):
     return len([name for name in os.listdir(directory) if os.path.isdir(os.path.join(directory, name))])
 
-def calculate_statistics(dir1, dir2=None):
+# Function to count images in a directory
+def count_images_in_directory(directory):
+    counts = []
     # Determine the number of categories by counting folders in the first directory
-    num_categories = count_categories(dir1)
-
-    # Function to count images in a directory
-    def count_images_in_directory(directory):
-        counts = []
-        for category in range(num_categories):
-            category_dir = os.path.join(directory, str(category))
-            if os.path.exists(category_dir):
-                counts.append(len(os.listdir(category_dir)))
-            else:
-                counts.append(0)
-        return counts
+    num_categories = count_categories(directory)
+    for category in range(num_categories):
+        category_dir = os.path.join(directory, str(category))
+        if os.path.exists(category_dir):
+            counts.append(len(os.listdir(category_dir)))
+        else:
+            counts.append(0)
+    return counts
+    
+def calculate_statistics(dir1, dir2=None):
 
     # Get image counts for the first directory
     counts_dir1 = count_images_in_directory(dir1)

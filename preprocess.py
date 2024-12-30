@@ -6,15 +6,19 @@ from tensorflow.keras.preprocessing.image import load_img, img_to_array, save_im
 
 # Preprocessing methods
 def histogram_equalization(img):
-    img_yuv = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
-    img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
-    return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
+    img_hsi = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    H, S, I = cv2.split(img_hsi)
+    eq_I = cv2.equalizeHist(I)
+    eq_img = cv2.merge([H, S, eq_I])
+    return cv2.cvtColor(eq_img, cv2.COLOR_HSV2RGB)
 
 def clahe(img):
-    img_yuv = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    img_yuv[:, :, 0] = clahe.apply(img_yuv[:, :, 0])
-    return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
+    img_hsi = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    clahe = cv2.createCLAHE(clipLimit=8.0, tileGridSize=(4, 4))
+    H, S, I = cv2.split(img_hsi)
+    eq_I = clahe.apply(I)
+    eq_img = cv2.cvtColor(cv2.merge([H, S, eq_I]), cv2.COLOR_HSV2RGB)
+    return eq_img
 
 def gamma_correction(img, gamma=1.0):
     inv_gamma = 1.0 / gamma
@@ -32,19 +36,30 @@ def adaptive_histogram_equalization(img):
     img_lab[:, :, 0] = clahe.apply(img_lab[:, :, 0])
     return cv2.cvtColor(img_lab, cv2.COLOR_LAB2RGB)
 
+def conversion(img):
+    # modify in main
+    return img
+
 def preprocess_image(img, method):
-    if method == "histogram_equalization":
+    if isinstance(img, np.ndarray):  # Check if it's already a NumPy array
+        pass
+    else:
+        img = np.array(img)  # Convert PIL image to NumPy array
+        
+    if method == "he":
         return histogram_equalization(img)
     elif method == "clahe":
         return clahe(img)
     elif method == "gamma":
-        return gamma_correction(img, gamma=2.0)  # Adjust gamma value as needed
+        return gamma_correction(img, gamma=3.0)  # Adjust gamma value as needed
     elif method == "log":
         return log_transform(img)
-    elif method == "adaptive_histogram_equalization":
+    elif method == "ahe":
         return adaptive_histogram_equalization(img)
+    elif method == "conversion":
+        return conversion(img)
     else:
-        raise ValueError(f"Unknown preprocessing method: {method}")
+        raise ValueError(f"Unknown preprocessing method: {method}. \nAvailable methods: log, gamma, he, ahe, clahe, conversion")
 
 def main():
     """
@@ -52,7 +67,7 @@ def main():
     """
     # Check usage
     if len(sys.argv) != 3:
-        print("Usage: python preprocess.py input_directory preprocessing_method")
+        print("Usage: python preprocess.py input_directory preprocessing_method.")
         sys.exit(1)
 
     # Assign variables
@@ -85,7 +100,8 @@ def main():
                 if not os.path.exists(output_category_dir):
                     os.makedirs(output_category_dir)
 
-                output_path = os.path.join(output_category_dir, os.path.splitext(file)[0] + ".ppm")
+                ### modify here
+                output_path = os.path.join(output_category_dir, os.path.splitext(file)[0] + ".ppm") # modify for desired format
 
                 # Save image
                 save_img(output_path, preprocessed_img)
